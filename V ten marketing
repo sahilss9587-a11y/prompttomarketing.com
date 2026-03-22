@@ -1,0 +1,395 @@
+Core Features:
+├── User Registration/Login
+├── Article Library (News, Education, Tech, etc.)
+├── Reading Progress Tracker
+├── Quizzes/Comprehension Tests
+├── Points/Coin System
+├── Redeem Rewards (Paytm, UPI, Gift Cards)
+├── Admin Panel
+└── Referral System
+-- Users table
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(50) UNIQUE,
+    email VARCHAR(100) UNIQUE,
+    password VARCHAR(255),
+    points INT DEFAULT 0,
+    referral_code VARCHAR(20) UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Articles table
+CREATE TABLE articles (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255),
+    content TEXT,
+    image VARCHAR(255),
+    category VARCHAR(50),
+    quiz_questions JSON,
+    points_reward INT DEFAULT 10,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- User reading progress
+CREATE TABLE reading_progress (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT,
+    article_id INT,
+    time_spent INT, -- in seconds
+    quiz_score INT,
+    points_earned INT,
+    completed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (article_id) REFERENCES articles(id)
+);<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReadAndEarnIndia - Read & Earn Money</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <h2><i class="fas fa-book-reader"></i> ReadAndEarnIndia</h2>
+                </div>
+                <div class="nav-links">
+                    <a href="#home">Home</a>
+                    <a href="#articles">Articles</a>
+                    <a href="#earn">How to Earn</a>
+                    <span class="points-display" id="pointsDisplay">₹0</span>
+                    <button class="login-btn" id="loginBtn">Login</button>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Read Articles & <span class="highlight">Earn Real Money</span></h1>
+            <p>Earn up to ₹500 daily by reading quality content!</p>
+            <button class="cta-btn">Start Earning Now</button>
+        </div>
+    </section>
+
+    <!-- Articles Section -->
+    <section class="articles" id="articles">
+        <h2>Featured Articles</h2>
+        <div class="articles-grid" id="articlesGrid">
+            <!-- Articles loaded via JS -->
+        </div>
+    </section>
+</body>
+<script src="script.js"></script>
+</html>* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: #333;
+}
+
+.navbar {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    padding: 1rem 0;
+    position: fixed;
+    width: 100%;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo h2 {
+    color: white;
+    font-size: 1.8rem;
+}
+
+.nav-links a {
+    color: white;
+    text-decoration: none;
+    margin-left: 2rem;
+    font-weight: 500;
+}
+
+.points-display {
+    background: #ffd700;
+    color: #333;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    font-weight: bold;
+    margin-left: 1rem;
+}
+
+.hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    margin-top: 80px;
+}
+
+.hero-content h1 {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
+}
+
+.highlight {
+    color: #ffd700;
+}
+
+.cta-btn {
+    background: #ffd700;
+    color: #333;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 50px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.3s;
+}
+
+.cta-btn:hover {
+    transform: scale(1.05);
+}
+
+.articles {
+    padding: 5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.articles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+}
+
+.article-card {
+    background: white;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.article-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+}
+
+.article-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.article-content {
+    padding: 1.5rem;
+}
+
+.article-title {
+    font-size: 1.3rem;
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.article-meta {
+    color: #666;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.earn-points {
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    color: #333;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-content h1 {
+        font-size: 2.5rem;
+    }
+    
+    .nav-links {
+        display: none;
+    }
+}// Sample articles data
+const articles = [
+    {
+        id: 1,
+        title: "How to Start Freelancing in India 2024",
+        category: "Career",
+        image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=400",
+        points: 15,
+        content: "Full article content here...",
+        quiz: [
+            "What is the first step in freelancing?",
+            "Which platform is best for beginners?"
+        ]
+    },
+    // Add more articles...
+];
+
+// DOM Elements
+const articlesGrid = document.getElementById('articlesGrid');
+const pointsDisplay = document.getElementById('pointsDisplay');
+
+// Load articles
+function loadArticles() {
+    articlesGrid.innerHTML = articles.map(article => `
+        <div class="article-card" onclick="readArticle(${article.id})">
+            <img src="${article.image}" alt="${article.title}" class="article-image">
+            <div class="article-content">
+                <h3 class="article-title">${article.title}</h3>
+                <p class="article-meta">${article.category} • ${article.points} Points</p>
+                <div class="earn-points">Earn ${article.points}₹</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+// Reading tracker
+let readingTime = 0;
+let readingInterval;
+
+function readArticle(articleId) {
+    // Simulate article page
+    const article = articles.find(a => a.id === articleId);
+    document.body.innerHTML = `
+        <div style="padding: 2rem; max-width: 800px; margin: 0 auto;">
+            <button onclick="history.back()" style="background: #667eea; color: white; padding: 0.5rem 1rem; border: none; border-radius: 5px; margin-bottom: 2rem;">← Back</button>
+            <h1>${article.title}</h1>
+            <div id="timer" style="background: #ffd700; padding: 0.5rem; border-radius: 5px; margin: 1rem 0;">Time Read: 0s</div>
+            <div style="line-height: 1.8; font-size: 1.1rem;">${article.content}</div>
+            <button onclick="completeArticle(${articleId}, ${article.points})" style="margin-top: 2rem; background: #28a745; color: white; padding: 1rem 2rem; border: none; border-radius: 25px; font-size: 1.1rem;">Complete & Earn ${article.points}₹</button>
+        </div>
+    `;
+    
+    // Start reading timer
+    readingInterval = setInterval(() => {
+        readingTime++;
+        document.getElementById('timer').textContent = `Time Read: ${readingTime}s`;
+    }, 1000);
+}
+
+function completeArticle(articleId, points) {
+    clearInterval(readingInterval);
+    if (readingTime >= 30) { // Minimum 30 seconds
+        alert(`Congratulations! You earned ${points}₹`);
+        // Update points (save to localStorage or backend)
+        let totalPoints = parseInt(localStorage.getItem('points') || '0');
+        totalPoints += points;
+        localStorage.setItem('points', totalPoints);
+        updatePointsDisplay();
+        history.back();
+    } else {
+        alert('Please read for at least 30 seconds!');
+    }
+}
+
+function updatePointsDisplay() {
+    const points = localStorage.getItem('points') || '0';
+    pointsDisplay.textContent = `₹${points}`;
+}
+
+// Initialize
+loadArticles();
+updatePointsDisplay();
+<?php
+header('Content-Type: application/json');
+require_once 'config.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $user_id = $_POST['user_id'];
+    $article_id = $_POST['article_id'];
+    $time_spent = $_POST['time_spent'];
+    $quiz_score = $_POST['quiz_score'] ?? 0;
+
+    // Check if already completed
+    $stmt = $pdo->prepare("SELECT * FROM reading_progress WHERE user_id = ? AND article_id = ?");
+    $stmt->execute([$user_id, $article_id]);
+    
+    if ($stmt->rowCount() > 0) {
+        echo json_encode(['success' => false, 'message' => 'Already completed']);
+        exit;
+    }
+
+    // Get article points
+    $stmt = $pdo->prepare("SELECT points_reward FROM articles WHERE id = ?");
+    $stmt->execute([$article_id]);
+    $article = $stmt->fetch();
+    $points = $article ? $article['points_reward'] : 0;
+
+    // Record progress
+    $stmt = $pdo->prepare("INSERT INTO reading_progress (user_id, article_id, time_spent, quiz_score, points_earned) VALUES (?, ?, ?, ?, ?)");
+    $stmt->execute([$user_id, $article_id, $time_spent, $quiz_score, $points]);
+
+    // Update user points
+    $stmt = $pdo->prepare("UPDATE users SET points = points + ? WHERE id = ?");
+    $stmt->execute([$points, $user_id]);
+
+    echo json_encode(['success' => true, 'points_earned' => $points]);
+}
+?>
+<!-- Add to checkout page -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<button onclick="redeemPoints(100)">Redeem ₹100</button>
+
+<script>
+function redeemPoints(amount) {
+    var options = {
+        "key": "YOUR_RAZORPAY_KEY",
+        "amount": amount * 100, // in paise
+        "currency": "INR",
+        "name": "ReadAndEarnIndia",
+        "description": "Redeem Points",
+        "handler": function (response) {
+            // Verify payment & transfer to user
+            alert('Payment successful! Money sent to your account.');
+        }
+    };
+    var rzp = new Razorpay(options);
+    rzp.open();
+}
+✅ Add Push Notifications
+✅ WhatsApp sharing
+✅ Referral program (₹50 per referral)
+✅ Daily login bonus
+✅ Leaderboard
+✅ UPI Auto-payouts
+✅ Android App (using WebView)
+</script>
+# 1. Setup XAMPP/WAMP
+# 2. Create database & import SQL
+# 3. Replace files in htdocs/readandearn
+# 4. Update config.php database credentials
+# 5. Visit localhost/readandearn
